@@ -60,4 +60,4 @@ http://localhost:8080/webjars/swagger-ui/index.html
 
 ## Данные админа по-умолчанию
     username: "admin"
-    password: "password"
+    password: "admin"
