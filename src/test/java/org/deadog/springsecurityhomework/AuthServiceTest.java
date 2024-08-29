@@ -62,7 +62,6 @@ class AuthServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Initialize test data
         authenticationRequest = new AuthenticationRequest("testuser", "password");
         testUser = new User(1L, "testuser", "encodedPassword", "email",  Set.of(RoleType.USER));
         authService = new AuthService(authenticationManagement, userRepository, passwordEncoder, tokenService, refreshTokenService);
@@ -70,27 +69,21 @@ class AuthServiceTest {
 
     @Test
     void testLoginSuccess() {
-        // Mocking the authentication management to return a valid authentication object
         Authentication authentication = new UsernamePasswordAuthenticationToken("testuser", "password");
         when(authenticationManagement.authenticate(any(Authentication.class)))
                 .thenReturn(Mono.just(authentication));
 
-        // Mocking user repository to return a valid user
         when(userRepository.findByUsername("testuser"))
                 .thenReturn(Mono.just(testUser));
 
-        // Mocking password encoder to match passwords
         when(passwordEncoder.matches(eq("password"), eq("encodedPassword"))).thenReturn(true);
 
-        // Mocking token service to generate access and refresh tokens
         when(tokenService.generateAccessToken(anyString(), anyString(), anySet())).thenReturn(accessToken);
         when(tokenService.generateRefreshToken(anyString())).thenReturn(refreshTokenValue);
 
-        // Mocking refresh token service to save refresh token
         when(refreshTokenService.save(eq(1L), eq(refreshTokenValue)))
                 .thenReturn(Mono.just(new RefreshToken(UUID.randomUUID().toString(), 1L, refreshTokenValue)));
 
-        // Testing the login method
         StepVerifier.create(authService.login(authenticationRequest))
                 .expectNextMatches(response -> response.getToken().equals(accessToken)
                         && response.getRefreshToken().equals(refreshTokenValue))
@@ -99,19 +92,15 @@ class AuthServiceTest {
 
     @Test
     void testLoginInvalidPassword() {
-        // Mocking authentication management to return a valid authentication object
         Authentication authentication = new UsernamePasswordAuthenticationToken("testuser", "password");
         when(authenticationManagement.authenticate(any(Authentication.class)))
                 .thenReturn(Mono.just(authentication));
 
-        // Mocking user repository to return a valid user
         when(userRepository.findByUsername("testuser"))
                 .thenReturn(Mono.just(testUser));
 
-        // Mocking password encoder to not match passwords
         when(passwordEncoder.matches(eq("password"), eq("encodedPassword"))).thenReturn(false);
 
-        // Testing the login method for invalid password scenario
         StepVerifier.create(authService.login(authenticationRequest))
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
                         throwable.getMessage().equals("Invalid password"))
@@ -120,25 +109,19 @@ class AuthServiceTest {
 
     @Test
     void testRefreshSuccess() {
-        // Mocking token service to validate refresh token
         when(tokenService.validateRefreshToken(refreshTokenValue)).thenReturn(true);
 
-        // Mocking refresh token service to return a refresh token
         when(refreshTokenService.getByValue(refreshTokenValue))
                 .thenReturn(Mono.just(new RefreshToken(UUID.randomUUID().toString(), 1L, refreshTokenValue)));
 
-        // Mocking user repository to return a valid user
         when(userRepository.findById(1L)).thenReturn(Mono.just(testUser));
 
-        // Mocking token service to generate access and refresh tokens
         when(tokenService.generateAccessToken(anyString(), anyString(), anySet())).thenReturn(accessToken);
         when(tokenService.generateRefreshToken(anyString())).thenReturn(refreshTokenValue);
 
-        // Mocking refresh token service to save refresh token
         when(refreshTokenService.save(eq(1L), eq(refreshTokenValue)))
                 .thenReturn(Mono.just(new RefreshToken(UUID.randomUUID().toString(), 1L, refreshTokenValue)));
 
-        // Testing the refresh method
         StepVerifier.create(authService.refresh(refreshTokenValue))
                 .expectNextMatches(response -> response.getToken().equals(accessToken)
                         && response.getRefreshToken().equals(refreshTokenValue))
@@ -147,10 +130,8 @@ class AuthServiceTest {
 
     @Test
     void testRefreshInvalidToken() {
-        // Mocking token service to invalidate refresh token
         when(tokenService.validateRefreshToken(refreshTokenValue)).thenReturn(false);
 
-        // Testing the refresh method for invalid token scenario
         StepVerifier.create(authService.refresh(refreshTokenValue))
                 .expectErrorMatches(throwable -> throwable instanceof RefreshTokenException &&
                         throwable.getMessage().equals("Invalid refresh token: " + refreshTokenValue))

@@ -23,7 +23,7 @@ class RefreshTokenServiceTest {
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
 
-    private RefreshTokenService refreshTokenService; // Automatically inject mocks
+    private RefreshTokenService refreshTokenService;
 
     private Duration refreshTokenExpiration;
     private RefreshToken testRefreshToken;
@@ -32,21 +32,18 @@ class RefreshTokenServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize test data
         userId = 1L;
         tokenValue = UUID.randomUUID().toString();
-        refreshTokenExpiration = Duration.ofDays(30); // Example expiration duration
+        refreshTokenExpiration = Duration.ofDays(30);
         testRefreshToken = new RefreshToken(UUID.randomUUID().toString(), userId, tokenValue);
         refreshTokenService = new RefreshTokenService(refreshTokenRepository, refreshTokenExpiration.toString());
     }
 
     @Test
     void testSaveSuccess() {
-        // Mock repository save to return true, indicating successful save
         when(refreshTokenRepository.save(any(RefreshToken.class), any(Duration.class)))
                 .thenReturn(Mono.just(true));
 
-        // Testing save method
         StepVerifier.create(refreshTokenService.save(userId, tokenValue))
                 .expectNextMatches(savedToken -> savedToken.getUserId().equals(userId) &&
                         savedToken.getValue().equals(tokenValue))
@@ -58,7 +55,6 @@ class RefreshTokenServiceTest {
         when(refreshTokenRepository.save(any(RefreshToken.class), any(Duration.class)))
                 .thenReturn(Mono.just(false));
 
-        // Testing save method for failure scenario
         StepVerifier.create(refreshTokenService.save(userId, tokenValue))
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
                         throwable.getMessage().equals("Failed to save refresh token for userId: " + userId))
@@ -67,10 +63,8 @@ class RefreshTokenServiceTest {
 
     @Test
     void testGetByValueSuccess() {
-        // Mock repository getByValue to return a valid refresh token
         when(refreshTokenRepository.getByValue(tokenValue)).thenReturn(Mono.just(testRefreshToken));
 
-        // Testing getByValue method
         StepVerifier.create(refreshTokenService.getByValue(tokenValue))
                 .expectNext(testRefreshToken)
                 .verifyComplete();
@@ -78,10 +72,8 @@ class RefreshTokenServiceTest {
 
     @Test
     void testGetByValueNotFound() {
-        // Mock repository getByValue to return empty, indicating token not found
         when(refreshTokenRepository.getByValue(tokenValue)).thenReturn(Mono.empty());
 
-        // Testing getByValue method for not found scenario
         StepVerifier.create(refreshTokenService.getByValue(tokenValue))
                 .expectNextCount(0)
                 .verifyComplete();

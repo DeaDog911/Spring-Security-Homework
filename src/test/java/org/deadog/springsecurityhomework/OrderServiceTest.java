@@ -76,8 +76,7 @@ public class OrderServiceTest {
         user.setId(1L);
         Order order = new Order();
 
-        // Mock repository responses
-        when(userRepository.findByUsername(username)).thenReturn(Mono.just(user));  // Return Mono.just(user) instead of null
+        when(userRepository.findByUsername(username)).thenReturn(Mono.just(user));
         when(orderRepository.save(any(Order.class))).thenReturn(Mono.just(order));
 
         StepVerifier.create(orderService.createOrder(order))
@@ -92,8 +91,7 @@ public class OrderServiceTest {
         user.setId(1L);
         Order order = new Order();
 
-        // Mock repository responses
-        when(userRepository.findByUsername(username)).thenReturn(Mono.just(user));  // Return Mono.just(user) instead of null
+        when(userRepository.findByUsername(username)).thenReturn(Mono.just(user));
         when(orderRepository.findAllByUserId(user.getId())).thenReturn(Flux.just(order));
 
         StepVerifier.create(orderService.getUserOrders())
