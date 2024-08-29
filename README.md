@@ -57,3 +57,7 @@ mvn test
 
 После запуска приложения документация API доступна по адресу
 http://localhost:8080/webjars/swagger-ui/index.html
+
+## Данные админа по-умолчанию
+    username: "admin"
+    password: "password"
